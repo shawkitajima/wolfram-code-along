@@ -1,24 +1,42 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, {useState, useEffect} from 'react';
+import questionService from './utils/questionService';
 import './App.css';
 
+import Question from './components/Question/Question';
+
 function App() {
+  const [log, setLog] = useState([]);
+  const [question, setQuestion] = useState('');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    questionService.index().then(res => setLog(res.reverse()));
+  }, []);
+
+  const handleSubmit = () => {
+    questionService.create(question).then(res => {
+      if (res.error) {
+        setError('there was an error with your question');
+      } else {
+        setLog([...[res], ...log]);
+      }
+      setQuestion('');
+    });
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>The Wolfram Alpha Log of Questions!</h1>
+      <h2>Feel free to add a question and see if Wolfram can answer</h2>
+      {error && <div style={{color: 'red'}}>{error}</div>}
+      <div className="flexHori">
+        <input value={question} onChange={(evt) => {
+            setQuestion(evt.target.value)
+            setError(null);
+          }} />
+        <div className="button" onClick={handleSubmit}>Ask!</div>
+      </div>
+      {log.map((question, idx) => <Question key={idx} question={question} />)}
     </div>
   );
 }
